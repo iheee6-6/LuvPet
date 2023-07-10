@@ -1,7 +1,7 @@
 package com.shinhe.luvpet.api;
 
-import com.shinhe.luvpet.dto.SidoResponseDto;
-import com.shinhe.luvpet.service.SidoService;
+import com.shinhe.luvpet.dto.LocationResponseDto;
+import com.shinhe.luvpet.service.LocationService;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -24,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PetApiController {
 
-    private final SidoService sidoService;
+    private final LocationService locationService;
 
 
     @Value("${API-URL}")
@@ -61,15 +61,12 @@ public class PetApiController {
         rd.close();
         conn.disconnect();
 
-        List<SidoResponseDto> srdList=parseJson(result.toString());
-        for(SidoResponseDto srd : srdList){
-            System.out.println("srd: " + srd.getOrgCd()+" "+srd.getOrgdownNm());
-        }
-        sidoService.saveSido(srdList);
+        List<LocationResponseDto> srdList=parseJson(result.toString());
+        locationService.saveSido(srdList);
         return result.toString();
     }
 
-    private List<SidoResponseDto> parseJson(String result) throws ParseException {
+    private List<LocationResponseDto> parseJson(String result) throws ParseException {
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(result);
         // 가장 큰 JSON 객체 response 가져오기
@@ -84,14 +81,50 @@ public class PetApiController {
         // items는 JSON임, 이제 그걸 또 배열로 가져온다
         JSONArray jsonItemList = (JSONArray) jsonItems.get("item");
 
-        List<SidoResponseDto> sidoResponseList = new ArrayList<>();
+        List<LocationResponseDto> sidoResponseList = new ArrayList<>();
         for (Object o : jsonItemList) {
             JSONObject item = (JSONObject) o;
             int orgCd = Integer.parseInt(String.valueOf(item.get("orgCd")));
             String orgdownNm = (String) item.get("orgdownNm");
-            sidoResponseList.add(new SidoResponseDto(orgCd, orgdownNm));
-            System.out.println("orgdownNm: " + orgdownNm);
+            if(item.containsKey("uprCd")){
+                int uprCd=Integer.parseInt(String.valueOf(item.get("uprCd")));
+                sidoResponseList.add(new LocationResponseDto(uprCd,orgCd, orgdownNm));
+            }else {
+                sidoResponseList.add(new LocationResponseDto(orgCd, orgdownNm));
+            }
         }
         return sidoResponseList;
+    }
+
+    @GetMapping("/getSigungu")
+    public String getSigungu() throws IOException, ParseException {
+        StringBuilder urlBuilder = new StringBuilder(API_URL).append("/sigungu"); /*URL*/
+        urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "="+API_KEY); /*Service Key*/
+        urlBuilder.append("&" + URLEncoder.encode("upr_cd", "UTF-8") + "=" + URLEncoder.encode("6110000", "UTF-8")); /*한 페이지 결과 수(1,000 이하)*/
+        urlBuilder.append("&" + URLEncoder.encode("_type", "UTF-8") + "=" + URLEncoder.encode("json", "UTF-8")); /*xml(기본값) 또는 json*/
+        URL url = new URL(urlBuilder.toString());
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Content-type", "application/json");
+        System.out.println("Response code: " + conn.getResponseCode());
+
+        BufferedReader rd;
+        if (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
+            rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        } else {
+            rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+        }
+
+        StringBuilder result = new StringBuilder();
+        String line;
+        while ((line = rd.readLine()) != null) {
+            result.append(line);
+        }
+        rd.close();
+        conn.disconnect();
+
+        List<LocationResponseDto> srdList=parseJson(result.toString());
+        locationService.saveSido(srdList);
+        return result.toString();
     }
 }
