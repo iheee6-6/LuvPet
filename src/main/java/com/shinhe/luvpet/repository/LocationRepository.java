@@ -8,11 +8,15 @@ import javax.persistence.EntityManager;
 
 @Repository
 @RequiredArgsConstructor
-public class PetRepository {
+public class LocationRepository {
 
     private final EntityManager em;
 
     public void save(Location sido){
         em.persist(sido);
+    }
+
+    public Location findOne(int orgCd) {
+        return em.find(Location.class, orgCd);
     }
 }
