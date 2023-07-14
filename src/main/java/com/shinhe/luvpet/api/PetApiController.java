@@ -2,8 +2,10 @@ package com.shinhe.luvpet.api;
 
 import com.shinhe.luvpet.domain.Shelter;
 import com.shinhe.luvpet.dto.LocationResponseDto;
+import com.shinhe.luvpet.dto.PetKindResponseDto;
 import com.shinhe.luvpet.dto.ShelterResponseDto;
 import com.shinhe.luvpet.service.LocationService;
+import com.shinhe.luvpet.service.PetService;
 import com.shinhe.luvpet.service.ShelterService;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONArray;
@@ -30,6 +32,7 @@ public class PetApiController {
 
     private final LocationService locationService;
     private final ShelterService shelterService;
+    private final PetService petService;
 
 
     @Value("${API-URL}")
@@ -196,5 +199,73 @@ public class PetApiController {
         return sidoResponseList;
     }
 
+    @GetMapping("/kind")
+    public String getPetKindAPI() throws IOException, ParseException{ // ?uprCd=6110000&orgCd=3220000
+        // - 개 : 417000
+        // - 고양이 : 422400
+        // - 기타 : 429900
+        getNsetKind("417000");
+        getNsetKind("422400");
+        getNsetKind("429900");
+        return "end";
+    }
 
+    private String getNsetKind(String num)  throws IOException, ParseException{
+        StringBuilder urlBuilder = new StringBuilder(API_URL).append("/kind"); /*URL*/
+        urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "="+API_KEY); /*Service Key*/
+        urlBuilder.append("&" + URLEncoder.encode("up_kind_cd", "UTF-8") + "=" + URLEncoder.encode(num, "UTF-8")); /*한 페이지 결과 수(1,000 이하)*/
+        urlBuilder.append("&" + URLEncoder.encode("_type", "UTF-8") + "=" + URLEncoder.encode("json", "UTF-8")); /*xml(기본값) 또는 json*/
+
+        URL url = new URL(urlBuilder.toString());
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Content-type", "application/json");
+        System.out.println("Response code: " + conn.getResponseCode());
+
+        BufferedReader rd;
+        if (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
+            rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        } else {
+            rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+        }
+
+        StringBuilder result = new StringBuilder();
+        String line;
+        while ((line = rd.readLine()) != null) {
+            result.append(line);
+        }
+        rd.close();
+        conn.disconnect();
+
+        System.out.println(result.toString());
+        List<PetKindResponseDto> pkList=petKindParseJson(result.toString());
+        petService.savePetKind(pkList,num);
+        return result.toString();
+    }
+
+    private List<PetKindResponseDto> petKindParseJson(String result) throws ParseException {
+        JSONParser jsonParser = new JSONParser();
+        JSONObject jsonObject = (JSONObject) jsonParser.parse(result);
+        // 가장 큰 JSON 객체 response 가져오기
+        JSONObject jsonResponse = (JSONObject) jsonObject.get("response");
+
+        // 그 다음 body 부분 파싱
+        JSONObject jsonBody = (JSONObject) jsonResponse.get("body");
+
+        // 그 다음 위치 정보를 배열로 담은 items 파싱
+        JSONObject jsonItems = (JSONObject) jsonBody.get("items");
+
+        // items는 JSON임, 이제 그걸 또 배열로 가져온다
+        JSONArray jsonItemList = (JSONArray) jsonItems.get("item");
+
+        List<PetKindResponseDto> kindResponseList = new ArrayList<>();
+        for (Object o : jsonItemList) {
+            JSONObject item = (JSONObject) o;
+            String kindCd = String.valueOf(item.get("kindCd"));
+            String KNm = (String) item.get("knm");
+
+            kindResponseList.add(new PetKindResponseDto(kindCd, KNm));
+        }
+        return kindResponseList;
+    }
 }
