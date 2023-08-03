@@ -11,4 +11,9 @@ public class HomeController {
     public String home(){
         return "home";
     }
+
+    @RequestMapping("/local")
+    public String goLocalPage(){
+        return "local";
+    }
 }

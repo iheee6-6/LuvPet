@@ -1,0 +1,83 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: header">
+    <title>LuvPet</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+
+<main class="container">
+    <div th:replace="fragments/bodyHeader :: bodyHeader"/>
+
+    <div class="album py-5 bg-body-tertiary">
+        <div class="container">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-3">
+                <div width="300px" class="col" th:each="item : ${noticeList}">
+                    <div class="card shadow-sm">
+                        <a th:href="@{/noticesDetail(id=${item.desertionNo}, pageNo = 1)}">
+                            <!--<svg class="bd-placeholder-img card-img-top" width="100%" height="225"
+                                 xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: Thumbnail"
+                                 preserveAspectRatio="xMidYMid slice" focusable="false">
+                                <rect width="100%" height="100%" fill="#55595c"></rect>
+                            </svg>-->
+                            <img width="300px" height="230px" th:src="${item.popfile}"></img>
+                        </a>
+                        <div class="card-body" height="295px">
+                            <h5 class="card-text" th:text="${item.kindCd}"></h5>
+                            <div class="flex items-center gap-2 font-normal text-sm text-gray-700 dark:text-stone-400">
+                                <svg style="width:20px" class="h-4 min-w-[16px] fill-gray-700 dark:fill-stone-400"
+                                     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+                                    <path d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 256c-35.3 0-64-28.7-64-64s28.7-64 64-64s64 28.7 64 64s-28.7 64-64 64z"></path>
+                                </svg>
+                                <div style="display:inline-block;" class="overflow-hidden text-ellipsis whitespace-nowrap"
+                                     th:text="${item.happenPlace}"></div>
+                            </div>
+                            <div class="flex items-center gap-2 font-normal text-sm text-gray-700 dark:text-stone-400">
+                                <svg style="width:20px"class="h-4 min-w-[16px] fill-gray-700 dark:fill-stone-400"
+                                     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                                    <path d="M128 0c17.7 0 32 14.3 32 32V64H288V32c0-17.7 14.3-32 32-32s32 14.3 32 32V64h48c26.5 0 48 21.5 48 48v48H0V112C0 85.5 21.5 64 48 64H96V32c0-17.7 14.3-32 32-32zM0 192H448V464c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V192zm64 80v32c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16V272c0-8.8-7.2-16-16-16H80c-8.8 0-16 7.2-16 16zm128 0v32c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16V272c0-8.8-7.2-16-16-16H208c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16v32c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16V272c0-8.8-7.2-16-16-16H336zM64 400v32c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16V400c0-8.8-7.2-16-16-16H80c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16v32c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16V400c0-8.8-7.2-16-16-16H208zm112 16v32c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16V400c0-8.8-7.2-16-16-16H336c-8.8 0-16 7.2-16 16z"></path>
+                                </svg>
+                                <div style="display:inline-block;" th:text="${item.noticeSdt}+' ~ ' + ${item.noticeEdt} "></div>
+                            </div>
+                            <text x="50%" y="50%" fill="#eceeef" dy=".3em" th:text="${item.specialMark}"></text>
+                            <div> <!--class="d-flex justify-content-between align-items-center"-->
+                                <div>
+                                    <button type="button" class="btn btn-success" th:text="${item.processState}"></button>
+                                    <button type="button" class="btn btn-warning" th:text="${item.sexCd}=='M'?'남자':'여자'"></button>
+                                    <button type="button" class="btn btn-info" th:text="${item.age}"></button>
+                                    <button type="button" class="btn btn-dark" th:text="${item.weight}"></button>
+                                </div>
+                                <small class="text-body-secondary">9 mins</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <section class="py-5 text-center container">
+        <nav aria-label="...">
+            <ul class="pagination">
+                <li class="page-item disabled">
+                    <a class="page-link">Previous</a>
+                </li>
+                <li class="page-item"><a class="page-link" href="#">1</a></li>
+                <li class="page-item active" aria-current="page">
+                    <a class="page-link" href="#">2</a>
+                </li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item">
+                    <a class="page-link" href="#">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </section>
+</main>
+
+<div th:replace="fragments/footer :: footer"/>
+
+
+</body>
+</html>
